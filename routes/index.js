@@ -53,7 +53,8 @@ router.get('/api/Time', verifyJWT, function(req, res, next) {
 
 router.post('/api/Time', verifyJWT, async (req, res, next) => {
   // Extract the array of objects from the request body
-  const objects = req.body.data;
+
+  const objects = (req.body.data ? req.body.data : req.body); // solution for a Snap particular behavior.
   let recordIds = []; // Create an empty array to store the IDs of the inserted records
 
   //Iterate over the objects and insert them into the database
