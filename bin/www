@@ -3,23 +3,31 @@
 /**
  * Module dependencies.
  */
-
+var path = require('path');
 var app = require('../app');
 var debug = require('debug')('api:server');
-var http = require('http');
+var https = require('https');
+console.log(__dirname);
+// from openai
+const fs = require('fs');
+
+const privateKey = fs.readFileSync( path.join(__dirname, 'sslcert/privkey1.pem'), 'utf8');
+const certificate = fs.readFileSync(path.join(__dirname, 'sslcert/cert1.pem'), 'utf8');
+const ca = fs.readFileSync(path.join(__dirname, 'sslcert/fullchain1.pem'), 'utf8');
+
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.PORT || '443');
 app.set('port', port);
 
 /**
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+var server = https.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
