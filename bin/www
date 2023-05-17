@@ -23,11 +23,18 @@ const ca = fs.readFileSync(path.join(__dirname, 'sslcert/chain1.pem'), 'utf8');
 var port = normalizePort(process.env.PORT || '443');
 app.set('port', port);
 
+
+
 /**
  * Create HTTP server.
  */
+const serverOptions = {
+  key: privateKey,
+  cert: certificate,
+  ca: ca
+};
 
-var server = https.createServer(app);
+var server = https.createServer(serverOptions, app);
 
 /**
  * Listen on provided port, on all network interfaces.
