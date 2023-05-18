@@ -1,5 +1,6 @@
 # env variable for json web token
 .env
+bin/sslcert/
 # file that contains DB credentials. Must not be synced to repo.
 db_creds.js
 # Logs
