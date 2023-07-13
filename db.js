@@ -14,7 +14,7 @@ const poolPromise = new sql.ConnectionPool(connStr)
 async function selectEmployees(group, res){
    const pool = await poolPromise;
    
-   const result = await pool
+   await pool
       .request()
       .query("SELECT * FROM Employees WHERE [Group] =" + group)
       .then(result => res.json(result.recordset))

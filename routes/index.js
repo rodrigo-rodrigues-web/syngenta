@@ -6,22 +6,22 @@ const { selectEmployees, sql, poolPromise } = require('../db');
 var router = express.Router();
 
 //authentication
-function verifyJWT(req, res, next){
+function verifyJWT(req, res, next) {
   const token = req.headers['x-access-token'];
   if (!token) return res.status(401).json({ auth: false, message: 'No token provided.' });
-  
-  jwt.verify(token, process.env.SECRET, function(err, decoded) {
+
+  jwt.verify(token, process.env.SECRET, function (err, decoded) {
     if (err) return res.status(500).json({ auth: false, message: 'Failed to authenticate token.' });
-    
+
     // se tudo estiver ok, salva no request para uso posterior
     req.userId = decoded.id;
     next();
   });
 }
 
-router.post('/login', (req, res, next) => {
+router.post('/login', (req, res) => {
   //esse teste abaixo deve ser feito no seu banco de dados
-  if(req.body.user === 'syngentaAPIs' && req.body.password === 'yxf6qn7B8QSRBckx'){
+  if (req.body.user === 'syngentaAPIs' && req.body.password === 'yxf6qn7B8QSRBckx') {
     //auth ok
     const id = 1; //esse id viria do banco de dados
     const token = jwt.sign({ id }, process.env.SECRET, {
@@ -29,19 +29,19 @@ router.post('/login', (req, res, next) => {
     });
     return res.json({ auth: true, token: token });
   }
-  
-  res.status(500).json({message: 'Login inválido!'});
-})
 
-router.post('/logout', function(req, res) {
+  res.status(500).json({ message: 'Login inválido!' });
+});
+
+router.post('/logout', function (req, res) {
   res.json({ auth: false, token: null });
-})
+});
 
-router.get('/', function(req, res, next) {
+router.get('/', function (req, res) {
   res.render('index', { title: 'Express' });
 });
 
-router.get('/api/Time', verifyJWT, function(req, res, next) {
+router.get('/api/Time', verifyJWT, function (req, res) {
   const group = req.query.group;
 
   if (!Number.isInteger(parseInt(group))) {
@@ -51,7 +51,7 @@ router.get('/api/Time', verifyJWT, function(req, res, next) {
   }
 });
 
-router.post('/api/Time', verifyJWT, async (req, res, next) => {
+router.post('/api/Time', verifyJWT, async (req, res) => {
   // Extract the array of objects from the request body
 
   const objects = (req.body.data ? req.body.data : req.body); // solution for a Snap particular behavior.
@@ -62,8 +62,8 @@ router.post('/api/Time', verifyJWT, async (req, res, next) => {
     const object = objects[i];
     try {
       const pool = await poolPromise;
-      
-      const result = await pool
+
+      await pool
         .request()
         .input('Clock', sql.NVarChar, object.Clock)
         .input('TaskCode', sql.NVarChar, object.TaskCode)
@@ -72,8 +72,8 @@ router.post('/api/Time', verifyJWT, async (req, res, next) => {
         .input('CropCode', sql.NVarChar, object.CropCode)
         .query('INSERT INTO [Syngenta].[dbo].[TimeSheet] (Clock, TaskCode, Time, TimeUnit, CropCode) VALUES (@Clock, @TaskCode, @Time, @TimeUnit, @CropCode);SELECT * FROM TimeSheet WHERE id=(SELECT @@IDENTITY AS id);').then(result => {
           recordIds.push(result.recordset[0]);
-      })
-      
+        });
+
     } catch (err) {
       res.status(500);
       res.send(err.message);
@@ -81,7 +81,7 @@ router.post('/api/Time', verifyJWT, async (req, res, next) => {
   } // end of for loop
   // Send the array of record IDs as the response
   res.json(recordIds);
-  
+
 });
 
 
