@@ -1,6 +1,8 @@
 require("dotenv-safe").config();
 const jwt = require('jsonwebtoken');
 
+const { schema } = require('../bin/schema/validation');
+
 var express = require('express');
 const { selectEmployees, sql, poolPromise } = require('../db');
 var router = express.Router();
@@ -19,18 +21,24 @@ function verifyJWT(req, res, next) {
   });
 }
 
-router.post('/login', (req, res) => {
-  //esse teste abaixo deve ser feito no seu banco de dados
-  if (req.body.user === 'syngentaAPIs' && req.body.password === 'yxf6qn7B8QSRBckx') {
-    //auth ok
-    const id = 1; //esse id viria do banco de dados
-    const token = jwt.sign({ id }, process.env.SECRET, {
-      expiresIn: 3600 // expires in 60 min
-    });
-    return res.json({ auth: true, token: token });
+router.post('/login', async (req, res) => {
+  try {
+    const result = await schema.validateAsync(req.body);
+    //esse teste abaixo deve ser feito no seu banco de dados
+    if (result.user === 'syngentaAPIs' && result.password === 'yxf6qn7B8QSRBckx') {
+      //auth ok
+      const id = 1; //esse id viria do banco de dados
+      const token = jwt.sign({ id }, process.env.SECRET, {
+        expiresIn: 3600 // expires in 60 min
+      });
+      return res.json({ auth: true, token: token });
+    } // end of if statement
+    res.status(500).json({ message: 'Login Inválido!' });
+  } catch (error) {
+    if (error.isJoi) {
+      res.status(422).json(error);
+    }
   }
-
-  res.status(500).json({ message: 'Login inválido!' });
 });
 
 router.post('/logout', function (req, res) {
